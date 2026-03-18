@@ -176,6 +176,12 @@ textarea{resize:vertical;min-height:72px;}
       <div><label>Cuenta Bancaria (IBAN)</label><input type="text" id="emp-web" placeholder="ES... para que te paguen"/></div>
     </div>
     <button class="btn btn-dark" style="margin-top:20px;width:100%;" onclick="guardarEmpresa()">GUARDAR DATOS EN MI ORDENADOR</button>
+    <div style="margin-top:12px;display:flex;gap:10px;">
+      <button class="btn btn-green" style="flex:1;" onclick="exportarConfig()">⬇️ Exportar configuración</button>
+      <button class="btn btn-out" style="flex:1;" onclick="document.getElementById('file-config').click()">⬆️ Importar configuración</button>
+      <input type="file" id="file-config" hidden accept=".json" onchange="importarConfig(this)"/>
+    </div>
+    <p style="font-size:11px;color:#999;margin-top:8px;text-align:center;">Exporta un fichero .json con tus datos y logo para cargarlo en cualquier dispositivo o navegador.</p>
   </div>
 </div>
 
@@ -318,7 +324,8 @@ const CAT = {
   muros:'Muros y Contención', tierras:'Mov. Tierras', auxiliares:'Auxiliares'
 };
 let lineas=[];
-let logoData=localStorage.getItem('arturo_logo')||'';
+const LOGO_DEFAULT='descarga.jpg';
+let logoData=localStorage.getItem('arturo_logo')||LOGO_DEFAULT;
 
 function tagHTML(cat) {
   const styles = {
@@ -343,11 +350,12 @@ function cargarEmpresa(){
       if(el)el.value=e[k]||'';
     });
   }
-  if(logoData){
-    document.getElementById('logo-preview').src=logoData;
-    document.getElementById('logo-preview').style.display='block';
-    document.getElementById('logo-ph').style.display='none';
-  }
+  // Mostrar logo: del localStorage si fue subido manualmente, si no el archivo descarga.jpg
+  const preview=document.getElementById('logo-preview');
+  const ph=document.getElementById('logo-ph');
+  preview.src=logoData;
+  preview.style.display='block';
+  ph.style.display='none';
 }
 function guardarEmpresa(){
   const e={};
@@ -369,10 +377,52 @@ function subirLogo(input){
   };
   r.readAsDataURL(f);
 }
+function exportarConfig(){
+  const e=JSON.parse(localStorage.getItem('arturo_empresa')||'{}');
+  const logo=localStorage.getItem('arturo_logo')||'';
+  const config={empresa:e, logo:logo};
+  const blob=new Blob([JSON.stringify(config,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='config_empresa.json';
+  a.click();
+}
+
+function importarConfig(input){
+  const f=input.files[0]; if(!f)return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    try{
+      const config=JSON.parse(ev.target.result);
+      if(config.empresa){
+        localStorage.setItem('arturo_empresa',JSON.stringify(config.empresa));
+        ['nombre','cif','dir','tel','email','web'].forEach(k=>{
+          const el=document.getElementById('emp-'+k);
+          if(el)el.value=config.empresa[k]||'';
+        });
+      }
+      if(config.logo){
+        logoData=config.logo;
+        localStorage.setItem('arturo_logo',config.logo);
+        document.getElementById('logo-preview').src=config.logo;
+        document.getElementById('logo-preview').style.display='block';
+        document.getElementById('logo-ph').style.display='none';
+      }
+      document.getElementById('emp-ok').style.display='inline';
+      setTimeout(()=>document.getElementById('emp-ok').style.display='none',3000);
+      alert('✅ Configuración importada correctamente.');
+    }catch(e){alert('Error al leer el fichero. Asegúrate de que es un fichero de configuración válido.');}
+  };
+  r.readAsText(f);
+  input.value='';
+}
+
 function borrarLogo(){
-  logoData='';localStorage.removeItem('arturo_logo');
-  document.getElementById('logo-preview').style.display='none';
-  document.getElementById('logo-ph').style.display='block';
+  logoData=LOGO_DEFAULT;
+  localStorage.removeItem('arturo_logo');
+  document.getElementById('logo-preview').src=LOGO_DEFAULT;
+  document.getElementById('logo-preview').style.display='block';
+  document.getElementById('logo-ph').style.display='none';
 }
 
 function initNum(){
