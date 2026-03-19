@@ -44,6 +44,7 @@ textarea{resize:vertical;min-height:72px;}
 .col-heads{display:grid;grid-template-columns:105px 1fr 90px 60px 92px 80px 30px;gap:8px;padding:10px 8px;background:#eee;border-radius:6px 6px 0 0;border:1px solid var(--border);border-bottom:none;}
 .col-head{font-size:11px;font-weight:bold;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;}
 .linea-row{display:grid;grid-template-columns:105px 1fr 90px 60px 92px 80px 30px;gap:8px;align-items:center;padding:8px;border:1px solid var(--border);border-top:none;background:#fff;}
+*{box-sizing:border-box;}
 .linea-row input{padding:7px 8px;font-size:13px;border-radius:var(--radius-sm);}
 .input-qty{background:#fff3e0!important;border-color:#ffb74d!important;font-weight:bold;text-align:center;font-size:14px!important;color:#d84315!important;} 
 .imp-sub{font-size:13px;color:var(--text);font-family:'DM Mono',monospace;text-align:right;font-weight:bold;}
@@ -68,6 +69,91 @@ textarea{resize:vertical;min-height:72px;}
   #pdf-overlay{display:block!important;position:static!important;background:none!important;padding:0!important;}
   #pdf-modal{border-radius:0!important;padding:1cm!important;max-width:100%!important;box-shadow:none!important;margin:0!important;}
   .pdf-acts{display:none!important;}
+}
+
+/* RESPONSIVE MÓVIL */
+@media(max-width:700px){
+  header{padding:10px 15px;}
+  header h1{font-size:13px;}
+  main{padding:0 10px;}
+  .tabs{flex-wrap:wrap;gap:4px;}
+  .tab{padding:8px 12px;font-size:13px;}
+  .grid2,.grid3{grid-template-columns:1fr;}
+
+  /* Selector de partidas en columna */
+  .card > div[style*="display:flex"]{flex-direction:column;}
+
+  /* Ocultar cabeceras de tabla en móvil */
+  .col-heads{display:none;}
+
+  /* Cada fila se convierte en tarjeta */
+  .linea-row{
+    display:flex !important;
+    flex-direction:column !important;
+    gap:8px;
+    padding:12px;
+    margin-bottom:10px;
+    border:1.5px solid var(--border);
+    border-radius:var(--radius);
+    background:#fff;
+    overflow:hidden;
+  }
+
+  /* Evitar desbordamiento general */
+  body, main, .card, .panel { max-width:100vw; overflow-x:hidden; }
+  * { box-sizing:border-box; }
+
+  /* Fila superior: tag categoría + botón borrar */
+  .linea-row-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+
+  /* Descripción ocupa todo el ancho */
+  .linea-row input[type=text]{
+    width:100%;
+    font-size:14px;
+    padding:8px;
+  }
+
+  /* Fila de cantidad, unidad y precio en línea */
+  .linea-row-nums{
+    display:grid;
+    grid-template-columns:1fr 60px 1fr;
+    gap:8px;
+    align-items:center;
+  }
+  .linea-row-nums input{
+    padding:8px;
+    font-size:14px;
+    text-align:center;
+  }
+  .linea-row-nums .ud-label{
+    text-align:center;
+    font-size:13px;
+    color:var(--text2);
+    font-family:'DM Mono',monospace;
+  }
+
+  /* Total de la línea destacado */
+  .imp-sub{
+    text-align:right;
+    font-size:16px;
+    font-weight:bold;
+    color:var(--text);
+    padding-top:4px;
+    border-top:1px solid var(--border);
+  }
+
+  /* Botones inferiores */
+  div[style*="justify-content:flex-end"]{
+    flex-direction:column;
+  }
+  .btn{width:100%;text-align:center;}
+
+  /* PDF modal más compacto */
+  #pdf-modal{padding:1rem;}
 }
 </style>
 </head>
@@ -464,13 +550,18 @@ function renderLineas(){
   }
   c.innerHTML=lineas.map((l,i)=>`
     <div class="linea-row">
-      <div>${tagHTML(l.cat)}<br><small style="color:#888;font-size:10px;">${l.cod||''}</small></div>
+      <div class="linea-row-top">
+        ${tagHTML(l.cat)}
+        <button class="btn-del" onclick="lineas.splice(${i},1);renderLineas()" title="Eliminar">×</button>
+      </div>
+      <small style="color:#888;font-size:10px;font-family:monospace;">${l.cod||''}</small>
       <input type="text" value="${l.desc}" oninput="lineas[${i}].desc=this.value">
-      <input type="number" class="input-qty" value="${l.qty}" min="0" step="0.01" oninput="actualizarLinea(${i}, 'qty', this.value)" title="Cambia aquí los metros/unidades">
-      <input type="text" value="${l.unidad}" oninput="lineas[${i}].unidad=this.value" style="text-align:center;">
-      <input type="number" value="${l.precio}" min="0" step="0.01" style="text-align:right;" oninput="actualizarLinea(${i}, 'precio', this.value)">
-      <div class="imp-sub" id="lin-tot-${i}">${fmt(l.qty*l.precio)}</div>
-      <button class="btn-del" onclick="lineas.splice(${i},1);renderLineas()">×</button>
+      <div class="linea-row-nums">
+        <input type="number" class="input-qty" value="${l.qty}" min="0" step="0.01" oninput="actualizarLinea(${i},'qty',this.value)" title="Cantidad">
+        <span class="ud-label">${l.unidad}</span>
+        <input type="number" value="${l.precio}" min="0" step="0.01" style="text-align:right;" oninput="actualizarLinea(${i},'precio',this.value)" title="Precio">
+      </div>
+      <div class="imp-sub" id="lin-tot-${i}">Total: ${fmt(l.qty*l.precio)}</div>
     </div>`).join('');
   updateTotal();
 }
