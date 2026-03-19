@@ -1,5 +1,5 @@
 
-# Generador de Presupuestos — Excavaciones y Servicios Arturo S.L.
+# Generador de Presupuestos — Excavaciones y Ser. Arturo 
 
 Herramienta web para generar presupuestos de obra de demolición y movimiento de tierras. Funciona directamente en el navegador, sin servidor ni instalación.
 
