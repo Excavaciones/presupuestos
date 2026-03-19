@@ -49,4 +49,4 @@ Herramienta web para generar presupuestos de obra de demolición y movimiento de
 
 ## 📄 Licencia
 
-Uso interno — Excavaciones y Servicios Arturo S.L.
+Uso interno — Excavaciones y Ser. Arturo 
